@@ -32,7 +32,7 @@ tasks:
     desc: Enable GCP Services required for this repo 
     cmds:
       - echo "Enabling GCP services"
-      - for: ['storage-component.googleapis.com', 'secretmanager.googleapis.com']
+      - for: ['storage-component.googleapis.com', 'secretmanager.googleapis.com', 'bigquery.googleapis.com']
         cmd: gcloud services enable {{.ITEM}}
 
   create-service-account:
@@ -55,7 +55,7 @@ tasks:
     desc: Give Service accounts access rights for GCP Services
     cmds:
       - echo "Bind IAM Policies to Service account {{.SERVICE_ACCOUNT}}"
-      - for: ['roles/storage.admin', 'roles/secretmanager.secretAccessor']
+      - for: ['roles/storage.admin', 'roles/secretmanager.secretAccessor', 'roles/bigquery.admin']
         cmd: gcloud projects add-iam-policy-binding $GCLOUD_PROJECT --member=serviceAccount:{{.SERVICE_ACCOUNT}}@{{.GCLOUD_PROJECT}}.iam.gserviceaccount.com --role={{.ITEM}}
 
 # Commands to interact with UV
