@@ -7,7 +7,8 @@ def upload_blob_from_dataframe(
     bucket_name: str,
     dataframe: pd.DataFrame,
     destination_file_name: str,
-    gcp_credential_block_name: str
+    gcp_credential_block_name: str,
+    serialization_format: str
 ):
     """Uploads a file to the bucket."""
 
@@ -19,7 +20,7 @@ def upload_blob_from_dataframe(
     gcs_bucket.upload_from_dataframe(
         df=dataframe, 
         to_path=destination_file_name,
-        serialization_format='parquet'
+        serialization_format=serialization_format
     )
     
     return gcs_bucket
