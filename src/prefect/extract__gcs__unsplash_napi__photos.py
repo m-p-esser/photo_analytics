@@ -5,7 +5,7 @@ import pandas as pd
 from prefect import flow, task, get_run_logger
 from requests import Response
 from urllib.parse import urlparse, parse_qs
-import fastparquet
+from datetime import datetime
 # Custom modules
 from request import (
     create_random_ua_string, request_unsplash_napi
@@ -105,10 +105,17 @@ def extract_gcs_unsplash_napi_photos(params: dict):
         response
     )
 
+    # Store in a folder based pn the day of the request
+    requested_at_string = response.headers['date']
+    rq_at = datetime.strptime(
+        requested_at_string, "%a, %d %b %Y %H:%M:%S %Z"
+    )
+    destination_folder = f"{rq_at.year}/{rq_at.month}/{rq_at.day}"
+    destination_file_name = f"{destination_folder}/{response.headers['x-request-id']}"
     upload_blob_from_dataframe(
         bucket_name='test__unsplash_napi__photos',
         dataframe=df,
-        destination_file_name=response.headers['x-request-id'],
+        destination_file_name=destination_file_name,
         gcp_credential_block_name='gcp--srv-user-etl',
         serialization_format='parquet'
     )
