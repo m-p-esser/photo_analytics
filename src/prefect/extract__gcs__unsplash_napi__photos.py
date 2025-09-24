@@ -3,9 +3,11 @@
 # Packages
 import pandas as pd
 from prefect import flow, task
+from requests import Response
+import fastparquet
 # Custom modules
 from request import (
-    create_random_ua_string, request_unsplash_napi, persist_data
+    create_random_ua_string, request_unsplash_napi
 )
 from gcs import upload_blob_from_dataframe
 
@@ -17,24 +19,38 @@ def request_unsplash_napi_photos(
     params: dict,
     headers: dict
 ):
-    data = request_unsplash_napi(
+    response = request_unsplash_napi(
         base_url,
         endpoint,
         params,
         headers
     )
-    return data
+    return response
 
 
 @task(log_prints=True)
 def store_unsplash_napi_photos_as_file(
-    data: dict,
+    response: Response,
     delta_load: bool = True
 ):
-    persist_data(
-        data,
-        delta_load
-    )
+    data = response.json()
+    df = pd.DataFrame(data)
+    # add response header infos
+    df['unsplash_request_id'] = response.headers['x-request-id']
+    df['unsplash_requested_at'] = response.headers['date']
+
+    if delta_load:
+        fastparquet.write(
+            filename="temp.parquet",
+            data=df,
+            append=True
+        )
+    if delta_load == False: # full load
+        fastparquet.write(
+            filename="temp.parquet",
+            data=df,
+            append=False
+        )
     df = pd.read_parquet("temp.parquet")
     print(df.shape)
     
@@ -55,7 +71,7 @@ def upload_unsplash_napi_photos_to_gcs_bucket(
 
 
 @flow(log_prints=True)
-def extract_unsplash_napi_photos():
+def extract_gcs_unsplash_napi_photos():
 
     useragent_string = create_random_ua_string(
         min_version=120.0,
@@ -72,12 +88,12 @@ def extract_unsplash_napi_photos():
     }
     endpoint = "/photos"
 
-    data = request_unsplash_napi_photos(
+    response = request_unsplash_napi_photos(
         base_url, endpoint, params, headers
     )
 
-    persist_data(
-        data, delta_load=True
+    store_unsplash_napi_photos_as_file(
+        response, delta_load=True
     )
     df = pd.read_parquet("temp.parquet")
     print(df.shape)
@@ -91,7 +107,7 @@ def extract_unsplash_napi_photos():
 
 
 if __name__ == '__main__':
-    extract_unsplash_napi_photos()
+    extract_gcs_unsplash_napi_photos()
 
 
 
