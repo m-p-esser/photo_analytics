@@ -1,7 +1,5 @@
 import httpx
 from fake_useragent import UserAgent
-import pandas as pd
-import fastparquet
 
 def create_random_ua_string(
     min_version: float,
@@ -34,20 +32,5 @@ def request_unsplash_napi(
 
     if response.status_code == 200:
         print(f"Request successful, Status Code: {response.status_code}")
-        data = response.json()
 
-        return data
-
-
-def persist_data(
-        data: dict,
-        delta_load: bool = True
-):
-    df = pd.DataFrame(data)
-
-    if delta_load:
-        fastparquet.write(
-            filename="temp.parquet",
-            data=df,
-            append=True
-        )
+        return response
