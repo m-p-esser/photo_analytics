@@ -1,0 +1,72 @@
+# https://taskfile.dev
+
+version: '3'
+
+dotenv: ['.env']
+
+vars:
+  SERVICE_ACCOUNT: 'srv-user-etl'  
+
+tasks:
+
+# Commands to interact to activate/expand access rights in GCP
+  set-default-gcp-project:
+    desc: Set default GCP project 
+    cmds:
+      - echo "Setting default GCP project to '$GCLOUD_PROJECT'"
+      - gcloud config set project $GCLOUD_PROJECT
+
+  set-main-account-as-default-gcp-account:
+    desc: Setting main account as default account for GCP
+    cmds:
+    - echo "Setting main account '$GCLOUD_MAIN_ACCOUNT' as default account for GCP"
+    - gcloud config set account $GCLOUD_MAIN_ACCOUNT
+
+  authenticate-with-gcp:
+    desc: Authenticate with GCP
+    cmds:
+    - gcloud auth login
+
+  enable-gcp-services:
+    deps: [set-main-account-as-default-gcp-account]
+    desc: Enable GCP Services required for this repo 
+    cmds:
+      - echo "Enabling GCP services"
+      - for: ['storage-component.googleapis.com', 'secretmanager.googleapis.com']
+        cmd: gcloud services enable {{.ITEM}}
+
+  create-service-account:
+    deps: [set-main-account-as-default-gcp-account]
+    desc: Create Service account
+    cmds:
+    - echo "Creating Service account {{.SERVICE_ACCOUNT}}"
+    - gcloud iam service-accounts create {{.SERVICE_ACCOUNT}}
+  
+  create-service-account-key-file:
+    desc: Create JSON Keyfile for Service account that can be used for authentification with GCP
+    cmds:
+    - echo "Creating Keyfile for Service account"
+    - mkdir -p .secrets
+    - gcloud iam service-accounts keys create ./.secrets/{{.SERVICE_ACCOUNT}}_keyfile.json --iam-account={{.SERVICE_ACCOUNT}}@$GCLOUD_PROJECT.iam.gserviceaccount.com
+    - echo "Created keyfile and stored it under './.secrets/{{.SERVICE_ACCOUNT}}_keyfile.json'"
+    
+  bind-iam-policies-to-service-account:
+    deps: [set-main-account-as-default-gcp-account]
+    desc: Give Service accounts access rights for GCP Services
+    cmds:
+      - echo "Bind IAM Policies to Service account {{.SERVICE_ACCOUNT}}"
+      - for: ['roles/storage.admin', 'roles/secretmanager.secretAccessor']
+        cmd: gcloud projects add-iam-policy-binding $GCLOUD_PROJECT --member=serviceAccount:{{.SERVICE_ACCOUNT}}@{{.GCLOUD_PROJECT}}.iam.gserviceaccount.com --role={{.ITEM}}
+
+# Commands to interact with UV
+  install-custom-modules:
+    desc: Install Custom Modules in editable mode
+    cmds:
+    - uv pip install -e .
+
+# Commands to interact with Prefect
+  authenticate-with-prefect-cloud:
+    desc: Authenticate with Prefect Cloud
+    cmds:
+    - uv run prefect cloud login
+  
