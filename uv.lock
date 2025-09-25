@@ -1976,6 +1976,7 @@ dependencies = [
     { name = "prefect-gcp", extra = ["bigquery"] },
     { name = "python-dotenv" },
     { name = "requests" },
+    { name = "setuptools" },
 ]
 
 [package.dev-dependencies]
@@ -1995,6 +1996,7 @@ requires-dist = [
     { name = "prefect-gcp", extras = ["bigquery"], specifier = ">=0.6.10" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "requests", specifier = ">=2.32.5" },
+    { name = "setuptools", specifier = ">=80.9.0" },
 ]
 
 [package.metadata.requires-dev]
