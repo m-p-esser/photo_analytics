@@ -9,3 +9,24 @@ for Compute and Prefect as Orchestration Tool
 - Install Python Package and Project Manager **UV**
 
 # Project Structure
+.
+├── Dockerfile
+├── explore.ipynb
+├── pyproject.toml
+├── README.md
+├── setup.py
+├── src
+│   ├── gcs.py
+│   ├── prefect
+│   └── request.py
+├── Taskfile.yml
+└── uv.lock
+
+# Technologies
+- Prefect for Orchestration
+- Google Cloud Runs for Execution
+- Google Cloud Storage as Raw Data Layer
+- Bigquery as Transformation Layer
+
+# Statistics
+- Metadata for XXX images
