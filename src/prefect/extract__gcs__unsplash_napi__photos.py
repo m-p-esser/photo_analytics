@@ -7,10 +7,10 @@ from requests import Response
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime
 # Custom modules
-from request import (
-    create_random_ua_string, request_unsplash_napi
+from src.request import (
+    create_random_ua_string, request_unsplash_napi, prepare_proxy_adresses
 )
-from gcs import upload_blob_from_dataframe
+from src.gcs import upload_blob_from_dataframe
 
 
 @task(log_prints=True)
@@ -18,16 +18,20 @@ def request_unsplash_napi_photos(
     base_url: str,
     endpoint: str,
     params: dict,
-    headers: dict
+    headers: dict,
+    proxy: str
 ):
     logger = get_run_logger()
     response = request_unsplash_napi(
         base_url,
         endpoint,
         params,
-        headers
+        headers,
+        proxy
     )
     logger.info(f"Response contains {len(response.json())} Items")
+    logger.info(f"Response Headers: {response.headers}")
+    logger.info(f"Request Headers: {response.request.headers}")
 
     return response
 
@@ -95,8 +99,11 @@ def extract_gcs_unsplash_napi_photos(params: dict):
     base_url = "https://unsplash.com/napi"
     endpoint = "/photos"
 
+    proxies = prepare_proxy_adresses()
+    proxy = proxies['http']
+
     response = request_unsplash_napi_photos(
-        base_url, endpoint, params, headers
+        base_url, endpoint, params, headers, proxy
     )
 
     last_page_number = identify_last_api_page(response)
