@@ -9,6 +9,7 @@ for Compute and Prefect as Orchestration Tool
 - Install Python Package and Project Manager **UV**
 
 # Project Structure
+```
 .
 ├── Dockerfile
 ├── explore.ipynb
@@ -21,6 +22,7 @@ for Compute and Prefect as Orchestration Tool
 │   └── request.py
 ├── Taskfile.yml
 └── uv.lock
+```
 
 # Technologies
 - Prefect for Orchestration
