@@ -6,7 +6,6 @@ from prefect import flow, task, get_run_logger
 from prefect_gcp import GcpCredentials
 from prefect_gcp.bigquery import bigquery_query
 from google.cloud import bigquery
-# Custom modules
 
 
 @task(log_prints=True)
